@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦁 每日熱點海巡</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        header p { opacity: 0.8; font-size: 0.9rem; }
+        .update-time { font-size: 0.8rem; opacity: 0.6; margin-top: 5px; }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: white;
+            position: sticky;
+            top: 90px;
+            z-index: 90;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab.active { background: #007aff; color: white; }
+        .tab:not(.active) { background: #e8e8ed; color: #666; }
+        
+        .date-list {
+            padding: 15px 20px;
+            background: white;
+            margin: 10px 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .date-list h3 { font-size: 0.9rem; color: #666; margin-bottom: 10px; }
+        .date-items { display: flex; flex-wrap: wrap; gap: 8px; }
+        .date-btn {
+            padding: 8px 16px;
+            border: 1px solid #e8e8ed;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: #f5f5f7;
+            transition: all 0.2s;
+        }
+        .date-btn:hover, .date-btn.active {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+        
+        .content { padding: 20px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f5;
+        }
+        .report-title { font-size: 1.3rem; font-weight: 700; }
+        .report-date { font-size: 0.85rem; color: #666; background: #f0f0f5; padding: 5px 12px; border-radius: 15px; }
+        
+        .article {
+            padding: 15px 0;
+            border-bottom: 1px solid #f5f5f7;
+        }
+        .article:last-child { border-bottom: none; }
+        .article-num {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #007aff;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .article-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1d1d1f;
+            margin-bottom: 5px;
+        }
+        .article-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .article-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #007aff;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .article-link:hover { text-decoration: underline; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 15px; }
+        
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.5rem; }
+            .tabs { top: 80px; }
+            .content { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🦁 每日熱點海巡</h1>
+        <p>AI 應用 × 命理相關</p>
+        <div class="update-time" id="updateTime">載入中...</div>
+    </header>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('ai')">🤖 AI 應用</button>
+        <button class="tab" onclick="switchTab('fortune')">🔮 命理相關</button>
+    </div>
+    
+    <div class="date-list">
+        <h3>📅 選擇日期</h3>
+        <div class="date-items" id="dateList"></div>
+    </div>
+    
+    <div class="content">
+        <div id="ai-section" class="section active"></div>
+        <div id="fortune-section" class="section"></div>
+    </div>
+
+    <script>
+        const REPORTS = {
+  "2026-10-23": {
+    "ai": [
+      {
+        "title": "1. AI 热点榜 · AIHOT",
+        "desc": "AI 热点榜 · AIHOT 过去 48 小时 AI 圈讨论最多的 10 件事 · 10月24日 19:50 更新 # AI 热点榜 过去 48 小时，AI 圈讨论最多的 10 件事 10月24日 19:50 更新 · 按讨论热度排序 NO.01持平 ## 月之暗面发布 Kimi K3.1 Pro，...",
+        "url": "ttps://aihot.news/hot"
+      },
+      {
+        "title": "2. Reddit AI 热帖日报 · Neodrop",
+        "desc": "Reddit AI 热帖日报 · Neodrop # Reddit AI 热帖日报 每天追踪 r/LocalLLaMA、r/OpenAI、r/ChatGPT、r/artificial、r/singularity、r/ClaudeAI、r/ArtificialInteligence 的热帖，输出中文跨...",
+        "url": "ttps://neodrop.ai/channel/IpArMYgszzb"
+      },
+      {
+        "title": "3. 2026-10-24 AI 新聞總覽 — AIDaily",
+        "desc": "2026-10- ... 4 AI 新聞總覽 — AIDaily ... # 10. 24 2026 年 10 月 24 日 週六 AI 新聞總覽 今天從 25 個來源挑出 57 條，分成 5 類，先看這 5 條重點。 ## 今日重點 ### eMudhra 憑證缺陷波及 Python，官方緊急更新...",
+        "url": "ttps://aidaily.chiba.tw/"
+      },
+      {
+        "title": "4. AI 快讯 - 每小时更新的行业动态",
+        "desc": "AI 快讯 - 每小时更新的行业动态 ... # 快讯 1. 10-24 19:05其他 ### 报告警告：数据中心或抹去数十年空气质量改善成果 The Verge 刊发报道，标题为《数据中心可能抹去数十年的空气质量改善成果》（Data centers could erase decades of ...",
+        "url": "ttps://www.zmj.net/flash"
+      },
+      {
+        "title": "5. 推特AI圈热门话题日报 · Neodrop",
+        "desc": null,
+        "url": "ttps://neodrop.ai/zh-cn/channel/RUAr4NW8ITW"
+      },
+      {
+        "title": "6. AI Down Today — is ChatGPT, Claude, Gemini or Copilot down?",
+        "desc": "Up](https://aidown.today/microsoft.html)",
+        "url": null
+      },
+      {
+        "title": "Recent incidents",
+        "desc": "* [Claude — October 21, 2026](https://aidown.today/incidents/anthropic-20261022-wj6r4t6...",
+        "url": "ttps://aidown.today/"
+      },
+      {
+        "title": "7. Claude vs ChatGPT vs Gemini: Which AI Is Best in 2026?",
+        "desc": "[James Chen](https://techjournal.org/author/james-chen) Last updated September 26, 2026 9 min read Fact-checked claude vs chatgpt vs gemini 2026 ...",
+        "url": "ttps://techjournal.org/claude-vs-chatgpt-vs-gemini-2026"
+      },
+      {
+        "title": "8. Gemini has a billion monthly users. ChatGPT hit that in June and moved the goalposts",
+        "desc": "This article was published on **August 12, 2026** * [Apps](https://thenextweb.com/apps)",
+        "url": "ttps://thenextweb.com/news/gemini-1-billion-monthly-users-chatgpt-weekly-actives-comparison"
+      },
+      {
+        "title": "9. Compare ChatGPT, Claude & Gemini Side by Side | AIPuna",
+        "desc": "Keep your context. Switch models without starting over.",
+        "url": null
+      },
+      {
+        "title": "Don't rely on one answer.",
+        "desc": "AIPuna lets you compare ChatGPT, Gemini, Claude and other AI mo...",
+        "url": "ttps://aipuna.ai/"
+      },
+      {
+        "title": "10. ChatGPT vs Claude vs Gemini 2026 完整比較：GPT-6 Astra、Opus 5.5、Gemini 4 Argon 怎麼選 | 鏈新聞 ABMedia",
+        "desc": "ChatGPT vs Claude vs Gemini 2026 完整比較：GPT-6 Astra、Opus 5.5、Gemini 4 Argon 怎麼選 想看單一品牌完整介紹？ 👉 [ChatGPT 完整指南](https://abmedia.io/chatgpt-complete-guide...",
+        "url": "ttps://abmedia.io/chatgpt-claude-gemini-2026-complete-comparison-version-differences"
+      }
+    ],
+    "fortune": [
+      {
+        "title": "1. 星座頻道｜科技紫微網-全球最大算命網站",
+        "desc": "星座運勢包含整體、愛情、事業、財富運勢指數、運程預測及開運祕法，天天看天天好運。還有500篇星座分析都在科技紫微網。星座運勢、星座分析第一選擇，科技紫微網.",
+        "url": "ttps://m.click108.com.tw/astro/"
+      },
+      {
+        "title": "2. 牡羊下週大獲全勝！天蠍天秤迎財富光明【塔羅歐巴】小孟老師 - YouTube",
+        "desc": "... 命運好好玩0727-0802 每週運勢 ... 命運好好玩#湯鎮瑋#小賴#白瑜#邱怡樹#命理#星座#紫微斗數#手面相#運勢#生肖.",
+        "url": "ttps://www.youtube.com/watch?v=FJQurhkS1HY"
+      },
+      {
+        "title": "3. 9/7~9/13許睿光星座週運2026 | 水星大風箏吉相 - YouTube",
+        "desc": "3:10 天秤 · 3:31 處女 · 3:55 牡羊 · 4:20 雙子運勢平穩 · 4:43 射手 · 5:01 雙魚 · 5:20 金牛 · 5:44 魔羯加強戒備 ...",
+        "url": "ttps://www.youtube.com/watch?v=lt-U-XumyEw"
+      },
+      {
+        "title": "4. 小孟老師運勢／曖昧有望修成正果！最旺2星座公開、這2位別讓猜疑毀感情",
+        "desc": "命理專家小孟老師點名射手座、水瓶座戀愛運最旺，單身者有望主動拉近距離，穩定交往者也可能迎來感情新進展；巨蟹座、雙魚座則屬於平穩發展，只要多些互動 ...",
+        "url": "ttps://tw.news.yahoo.com/%E5%B0%8F%E5%AD%9F%E8%80%81%E5%B8%AB%E9%81%8B%E5%8B%A2-%E6%9B%96%E6%98%A7%E6%9C%89%E6%9C%9B%E4%BF%AE%E6%88%90%E6%AD%A3%E6%9E%9C-%E6%9C%80%E6%97%BA2%E6%98%9F%E5%BA%A7%E5%85%AC%E9%96%8B-%E9%80%992%E4%BD%8D%E5%88%A5%E8%AE%93%E7%8C%9C%E7%96%91%E6%AF%80%E6%84%9F%E6%83%85-000000125.html"
+      },
+      {
+        "title": "5. 星座",
+        "desc": "![星座热议](https://statics.itc.cn/mptc-mpfe/img/newHotTopics.png) 星座热议",
+        "url": "ttps://astro.sohu.com/"
+      },
+      {
+        "title": "6. 果朗風水命理室‧紫微斗數灸子平八字對對碰",
+        "desc": "在討論區上有很多人都問學八字好還是學紫微斗數好, 有許多人都因這個問題而鬧過不停, 最終不歡而散。 香港人一般都喜好學習八字, 而很多較出名的師父也多用八字論命。主要原因是上一個世紀時電腦並未普及, 所有命盤都是人手 起出來的,如要起一個紫微斗數命盤, 相信熟練的師父也要最少半小時, 試問一天可以幫...",
+        "url": "ttps://www.fungshui-design.com/8wordziwei.html"
+      },
+      {
+        "title": "7. 紫微斗數、八字命理、風水、卜卦差別?",
+        "desc": "命: 子平八字、紫微斗數等。中華命理學。 相:看手相、面相，以看氣為主。風水也屬於此。 陳弘在2010年開始跟[家父陳紀瑞建築師](https://www.masterstark888.com/master-chen)學子平八字，也開始在網路上從免費算命到收費，甚至自己出了八字命理的書籍，八字可以...",
+        "url": "ttps://www.masterstark888.com/master-stark-13"
+      },
+      {
+        "title": "8. 風水命理論紫微斗數的夭壽煞, 風水, 風水命理, 紫微斗數, 羊刃星, 八字, 桃花星, 風水命理,天機星, 風水, 占卜, 八字, 紫微斗數, 命理, 紫微星, 命宮, 身宮,風水大師, 看風水風水布局,陽宅風水,風水布局",
+        "desc": "多年前，有客人問筆者命犯羊刃星，是否一定屬於凶命？從**[風水命理](new_page_140.htm)**中[八字學](fengshui-bazi-opposingandcooperating.htm)及[紫微斗數學](young-master-reply-doushubook.htm)來說，真的...",
+        "url": "ttps://www.hokming.com/doushu-yiushousha-confusing.htm?srsltid=AYCX9vLBnXQldrRnCxPTaYyq_9hhQmLK9NJenMNEEwkfsYSckSWVNcpI"
+      },
+      {
+        "title": "9. 術研命理研究所 (@shut.yin888) on Threads: 命理淺談_紫微斗數與八字的分別_上集 我相信好多喜歡中國術數嘅朋友，講到算命對於「紫微斗數」或者「八字」都唔會陌生，不過當中嘅推算方式同埋分別，我嘅客人就會經常問我，明顯，大家對於",
+        "desc": "我相信好多喜歡中國術數嘅朋友，講到算命對於「紫微斗數」或者「八字」都唔會陌生，不過當中嘅推算方式同埋分別，我嘅客人就會經常問我，明顯，大家對於自己算緊咩睇緊咩都唔係好明白 今日我先講紫微斗數 「紫微斗數」 1. 相對於八字佢嘅資訊同埋系統會比較複雜，所以以我個人而言，我會覺得佢會睇得比較深入。 2....",
+        "url": "ttps://www.threads.com/@shut.yin888/post/DF7b-vEyTck"
+      },
+      {
+        "title": "10. 紫微斗數與八字學哪個準?哪個厲害!!？",
+        "desc": "常聽到一些網路的朋友會問說：「我到底要相信紫微斗數好呢？還是相信八字學比較好呢？」， 或者「紫微斗數與八字學哪個厲害？」等問題。事實上紫微斗數與八字學都很厲害，只是兩種學理所看到的問題角度不同而已，但最後關於窮、通、富、貴與吉、凶、禍、福的結論一定會是相同的！ 不會有以紫微斗數分析是好的，但以八字學...",
+        "url": "ttps://www.fatebook.cc/fatebook/fate/fate10050.html"
+      }
+    ]
+  }
+};
+        let currentTab = 'ai';
+        let currentDate = null;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`${tab}-section`).classList.add('active');
+            renderContent();
+        }
+
+        function loadDates() {
+            const dates = Object.keys(REPORTS).sort().reverse();
+            currentDate = dates[0];
+            const dateList = document.getElementById('dateList');
+            dateList.innerHTML = dates.map(d => 
+                `<button class="date-btn ${d === currentDate ? 'active' : ''}" onclick="selectDate('${d}')">${d}</button>`
+            ).join('');
+        }
+
+        function selectDate(date) {
+            currentDate = date;
+            document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderContent();
+        }
+
+        function renderContent() {
+            const section = document.getElementById(`${currentTab}-section`);
+            const data = REPORTS[currentDate]?.[currentTab] || [];
+            
+            if (data.length === 0) {
+                section.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>尚無 ${currentTab === 'ai' ? 'AI 應用' : '命理'} 報告</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const title = currentTab === 'ai' ? '🤖 AI 應用熱點' : '🔮 命理相關熱點';
+            section.innerHTML = `
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-title">${title}</div>
+                        <div class="report-date">${currentDate}</div>
+                    </div>
+                    ${data.map((art, i) => `
+                        <div class="article">
+                            <div class="article-title">
+                                <span class="article-num">${i + 1}</span>${art.title}
+                            </div>
+                            ${art.desc ? `<div class="article-desc">${art.desc}</div>` : ''}
+                            ${art.url ? `<a href="${art.url}" target="_blank" class="article-link">🔗 查看原文</a>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-TW', { 
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+            document.getElementById('updateTime').textContent = `上次更新：${timeStr}`;
+        }
+
+        // 初始化
+        loadDates();
+        renderContent();
+        updateTime();
+    </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦁 每日熱點海巡</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        header p { opacity: 0.8; font-size: 0.9rem; }
+        .update-time { font-size: 0.8rem; opacity: 0.6; margin-top: 5px; }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: white;
+            position: sticky;
+            top: 90px;
+            z-index: 90;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab.active { background: #007aff; color: white; }
+        .tab:not(.active) { background: #e8e8ed; color: #666; }
+        
+        .date-list {
+            padding: 15px 20px;
+            background: white;
+            margin: 10px 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .date-list h3 { font-size: 0.9rem; color: #666; margin-bottom: 10px; }
+        .date-items { display: flex; flex-wrap: wrap; gap: 8px; }
+        .date-btn {
+            padding: 8px 16px;
+            border: 1px solid #e8e8ed;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: #f5f5f7;
+            transition: all 0.2s;
+        }
+        .date-btn:hover, .date-btn.active {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+        
+        .content { padding: 20px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        
+        .report-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f5;
+        }
+        .report-title { font-size: 1.3rem; font-weight: 700; }
+        .report-date { font-size: 0.85rem; color: #666; background: #f0f0f5; padding: 5px 12px; border-radius: 15px; }
+        
+        .article {
+            padding: 15px 0;
+            border-bottom: 1px solid #f5f5f7;
+        }
+        .article:last-child { border-bottom: none; }
+        .article-num {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #007aff;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .article-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1d1d1f;
+            margin-bottom: 5px;
+        }
+        .article-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .article-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #007aff;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .article-link:hover { text-decoration: underline; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 15px; }
+        
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.5rem; }
+            .tabs { top: 80px; }
+            .content { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🦁 每日熱點海巡</h1>
+        <p>AI 應用 × 命理相關</p>
+        <div class="update-time" id="updateTime">載入中...</div>
+    </header>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('ai')">🤖 AI 應用</button>
+        <button class="tab" onclick="switchTab('fortune')">🔮 命理相關</button>
+    </div>
+    
+    <div class="date-list">
+        <h3>📅 選擇日期</h3>
+        <div class="date-items" id="dateList"></div>
+    </div>
+    
+    <div class="content">
+        <div id="ai-section" class="section active"></div>
+        <div id="fortune-section" class="section"></div>
+    </div>
+
+    <script>
+        const REPORTS = {{REPORTS_DATA}};
+        let currentTab = 'ai';
+        let currentDate = null;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`${tab}-section`).classList.add('active');
+            renderContent();
+        }
+
+        function loadDates() {
+            const dates = Object.keys(REPORTS).sort().reverse();
+            currentDate = dates[0];
+            const dateList = document.getElementById('dateList');
+            dateList.innerHTML = dates.map(d => 
+                `<button class="date-btn ${d === currentDate ? 'active' : ''}" onclick="selectDate('${d}')">${d}</button>`
+            ).join('');
+        }
+
+        function selectDate(date) {
+            currentDate = date;
+            document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderContent();
+        }
+
+        function renderContent() {
+            const section = document.getElementById(`${currentTab}-section`);
+            const data = REPORTS[currentDate]?.[currentTab] || [];
+            
+            if (data.length === 0) {
+                section.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>尚無 ${currentTab === 'ai' ? 'AI 應用' : '命理'} 報告</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const title = currentTab === 'ai' ? '🤖 AI 應用熱點' : '🔮 命理相關熱點';
+            section.innerHTML = `
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-title">${title}</div>
+                        <div class="report-date">${currentDate}</div>
+                    </div>
+                    ${data.map((art, i) => `
+                        <div class="article">
+                            <div class="article-title">
+                                <span class="article-num">${i + 1}</span>${art.title}
+                            </div>
+                            ${art.desc ? `<div class="article-desc">${art.desc}</div>` : ''}
+                            ${art.url ? `<a href="${art.url}" target="_blank" class="article-link">🔗 查看原文</a>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-TW', { 
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+            document.getElementById('updateTime').textContent = `上次更新：${timeStr}`;
+        }
+
+        // 初始化
+        loadDates();
+        renderContent();
+        updateTime();
+    </script>
+</body>
+</html>
