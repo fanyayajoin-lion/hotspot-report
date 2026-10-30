@@ -94,36 +94,64 @@
             border-bottom: 2px solid #f0f0f5;
         }
         .report-title { font-size: 1.3rem; font-weight: 700; }
-        .report-date { font-size: 0.85rem; color: #666; background: #f0f0f5; padding: 5px 12px; border-radius: 15px; }
-        
+        .report-date { font-size: 0.85rem; color: #666; }
+
+        /* 區塊標題 */
+        .sub-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed #e8e8ed;
+        }
+        .sub-section:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+        .sub-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #007aff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sub-title .badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e8e8ed;
+            color: #666;
+        }
+
         .article {
-            padding: 15px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #f5f5f7;
         }
         .article:last-child { border-bottom: none; }
         .article-num {
             display: inline-block;
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             background: #007aff;
             color: white;
             border-radius: 50%;
             text-align: center;
-            line-height: 24px;
-            font-size: 0.75rem;
+            line-height: 22px;
+            font-size: 0.7rem;
             font-weight: 600;
             margin-right: 10px;
         }
         .article-title {
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #1d1d1f;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .article-desc {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             line-height: 1.5;
         }
         .article-link {
@@ -132,10 +160,19 @@
             gap: 5px;
             color: #007aff;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
         }
         .article-link:hover { text-decoration: underline; }
+        .interaction-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            background: #ff9500;
+            color: white;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
         
         .empty-state {
             text-align: center;
@@ -153,14 +190,15 @@
 </head>
 <body>
     <header>
-        <h1>🦁 每日熱點海巡</h1>
-        <p>AI 應用 × 命理相關</p>
-        <div class="update-time" id="updateTime">載入中...</div>
+    <h1>🦁 每日熱點海巡</h1>
+    <p>AI 應用 × 命理相關 × Threads 熱點</p>
+    <div class="update-time" id="updateTime">載入中...</div>
     </header>
-    
+
     <div class="tabs">
-        <button class="tab active" onclick="switchTab('ai')">🤖 AI 應用</button>
-        <button class="tab" onclick="switchTab('fortune')">🔮 命理相關</button>
+    <button class="tab active" onclick="switchTab('ai')">🤖 AI 應用</button>
+    <button class="tab" onclick="switchTab('fortune')">🔮 命理相關</button>
+    <button class="tab" onclick="switchTab('threads')">🧵 Threads Top 5</button>
     </div>
     
     <div class="date-list">
@@ -171,6 +209,7 @@
     <div class="content">
         <div id="ai-section" class="section active"></div>
         <div id="fortune-section" class="section"></div>
+        <div id="threads-section" class="section"></div>
     </div>
 
     <script>
@@ -203,38 +242,81 @@
             renderContent();
         }
 
-        function renderContent() {
-            const section = document.getElementById(`${currentTab}-section`);
-            const data = REPORTS[currentDate]?.[currentTab] || [];
-            
-            if (data.length === 0) {
-                section.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📭</div>
-                        <p>尚無 ${currentTab === 'ai' ? 'AI 應用' : '命理'} 報告</p>
+        function renderArticles(articles, showInteraction = false) {
+            if (!articles || articles.length === 0) return '<div class="empty-state"><div class="icon">📭</div><p>尚無資料</p></div>';
+            return articles.map((art, i) => `
+                <div class="article">
+                    <div class="article-title">
+                        <span class="article-num">${i + 1}</span>${art.title}
+                        ${art.interaction ? `<span class="interaction-badge">${art.interaction}</span>` : ''}
                     </div>
-                `;
+                    ${art.desc ? `<div class="article-desc">${art.desc}</div>` : ''}
+                    ${art.url ? `<a href="${art.url}" target="_blank" class="article-link">🔗 查看原文</a>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderContent() {
+            const data = REPORTS[currentDate];
+
+            if (!data) {
+                document.getElementById(`${currentTab}-section`).innerHTML =
+                    '<div class="empty-state"><div class="icon">📭</div><p>尚無資料</p></div>';
                 return;
             }
 
-            const title = currentTab === 'ai' ? '🤖 AI 應用熱點' : '🔮 命理相關熱點';
-            section.innerHTML = `
-                <div class="report-card">
-                    <div class="report-header">
-                        <div class="report-title">${title}</div>
-                        <div class="report-date">${currentDate}</div>
-                    </div>
-                    ${data.map((art, i) => `
-                        <div class="article">
-                            <div class="article-title">
-                                <span class="article-num">${i + 1}</span>${art.title}
-                            </div>
-                            ${art.desc ? `<div class="article-desc">${art.desc}</div>` : ''}
-                            ${art.url ? `<a href="${art.url}" target="_blank" class="article-link">🔗 查看原文</a>` : ''}
+            if (currentTab === 'ai') {
+                const sections = [
+                    { title: '🌐 全網熱點', key: 'web', icon: '📰' },
+                    { title: '🧵 社群熱點（脆）', key: 'threads', icon: '💬' },
+                    { title: '📷 社群熱點（IG）', key: 'instagram', icon: '📸' }
+                ];
+
+                document.getElementById('ai-section').innerHTML = sections.map(sec => `
+                    <div class="report-card">
+                        <div class="report-header">
+                            <div class="report-title">🤖 AI 應用</div>
+                            <div class="report-date">${currentDate}</div>
                         </div>
-                    `).join('')}
-                </div>
-            `;
+                        <div class="sub-section">
+                            <div class="sub-title">${sec.icon} ${sec.title}</div>
+                            ${renderArticles(data.ai?.[sec.key], sec.key === 'threads')}
+                        </div>
+                    </div>
+                `).join('');
+
+            } else if (currentTab === 'fortune') {
+                const sections = [
+                    { title: '🌐 全網熱點', key: 'web', icon: '📰' },
+                    { title: '🧵 社群熱點（脆）', key: 'threads', icon: '💬' },
+                    { title: '📷 社群熱點（IG）', key: 'instagram', icon: '📸' }
+                ];
+
+                document.getElementById('fortune-section').innerHTML = sections.map(sec => `
+                    <div class="report-card">
+                        <div class="report-header">
+                            <div class="report-title">🔮 命理相關</div>
+                            <div class="report-date">${currentDate}</div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-title">${sec.icon} ${sec.title}</div>
+                            ${renderArticles(data.fortune?.[sec.key], sec.key === 'threads')}
+                        </div>
+                    </div>
+                `).join('');
+
+            } else if (currentTab === 'threads') {
+                const threadsTop5 = data.threads_top5 || [];
+                document.getElementById('threads-section').innerHTML = `
+                    <div class="report-card">
+                        <div class="report-header">
+                            <div class="report-title">🧵 Threads 互動 TOP 5</div>
+                            <div class="report-date">${currentDate}</div>
+                        </div>
+                        ${renderArticles(threadsTop5, true)}
+                    </div>
+                `;
+            }
         }
 
         function updateTime() {
